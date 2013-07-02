@@ -16,16 +16,26 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * 駅を検索するActivity.
+ */
 public class SearchActivity extends FragmentActivity
         implements  View.OnClickListener, AdapterView.OnItemSelectedListener,
             LoaderManager.LoaderCallbacks<ArrayList<HashMap<String, String>>> {
 
+    /** 自身のインスタンス. */
     private final SearchActivity self = this;
 
+    /** ProgressDialog. */
     private ProgressDialog mProgressDialog;
+
+    /** エリア選択Spinner. */
     private Spinner mAreas;
+    /** 都道府県選択Spinner. */
     private Spinner mPrefectures;
+    /** 路線選択Spinner. */
     private Spinner mLines;
+    /** 駅選択Spinner. */
     private Spinner mStations;
 
     @Override
@@ -61,10 +71,11 @@ public class SearchActivity extends FragmentActivity
             ArrayList<HashMap<String, String>> list) {
         mProgressDialog.dismiss();
         if (list == null) {
+            // 何らかの理由により取得できない
             Toast.makeText(self, "エラー", Toast.LENGTH_SHORT).show();
             return;
         }
-
+        // 取得したデータを対象のSpinnerにセットする
         SimpleAdapter adapter = new SimpleAdapter(
                 self, list, android.R.layout.simple_spinner_item,
                 new String[] {"name"}, new int[] {android.R.id.text1});
@@ -73,20 +84,14 @@ public class SearchActivity extends FragmentActivity
             case ExpressLoader.AREAS:
                 mAreas.setAdapter(adapter);
                 mAreas.setOnItemSelectedListener(self);
-                mPrefectures.setAdapter(null);
-                mLines.setAdapter(null);
-                mStations.setAdapter(null);
                 break;
             case ExpressLoader.PREFECTURES:
                 mPrefectures.setAdapter(adapter);
                 mPrefectures.setOnItemSelectedListener(self);
-                mLines.setAdapter(null);
-                mStations.setAdapter(null);
                 break;
             case ExpressLoader.LINES:
                 mLines.setAdapter(adapter);
                 mLines.setOnItemSelectedListener(self);
-                mStations.setAdapter(null);
                 break;
             case ExpressLoader.STATIONS:
                 mStations.setAdapter(adapter);
@@ -101,11 +106,13 @@ public class SearchActivity extends FragmentActivity
 
     @Override
     public void onClick(View view) {
-        HashMap<String, String> station = (HashMap<String, String>) mStations.getSelectedItem();
-        if (station == null) {
+        if (mStations.getSelectedItemPosition() == 0) {
+            // 駅が選択されていない
             Toast.makeText(self, "駅が選択されていません", Toast.LENGTH_SHORT).show();
             return;
         }
+        // GoogleMapアプリで表示
+        HashMap<String, String> station = (HashMap<String, String>) mStations.getSelectedItem();
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setClassName("com.google.android.apps.maps","com.google.android.maps.MapsActivity");
         intent.setData(Uri.parse("geo:" + station.get("latitude") + "," + station.get("longitude") + "?z=16"));
@@ -115,12 +122,14 @@ public class SearchActivity extends FragmentActivity
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
         if (i == 0) {
+            // アイテムが選択されていない
             return;
         }
+        // アイテムを取得してリクエストにセット
         HashMap<String, String> item = (HashMap<String, String>) adapterView.getAdapter().getItem(i);
         Bundle bundle = new Bundle();
         bundle.putString("name", item.get("name"));
-
+        // 実行するメソッドを設定
         int loaderId = -1;
         switch (adapterView.getId()) {
             case R.id.areas:

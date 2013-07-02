@@ -20,15 +20,25 @@ import java.util.HashMap;
  */
 public class ExpressLoader extends AsyncTaskLoader<ArrayList<HashMap<String, String>>> {
 
+    /** エリア取得ID. */
     public static final int AREAS = 0;
+    /** 都道府県取得ID. */
     public static final int PREFECTURES = 1;
+    /** 路線取得ID. */
     public static final int LINES = 2;
+    /** 駅取得ID. */
     public static final int STATIONS = 3;
 
     /** Logcat出力用タグ. */
     private static final String TAG = ExpressLoader.class.getSimpleName();
+    /** パラメータにつける名前(エリアor都道府県or路線). */
     private String mName;
 
+    /**
+     * コンストラクタ.
+     * @param context Context
+     * @param name パラメータにつける名前(エリアor都道府県or路線)
+     */
     public ExpressLoader(Context context, String name) {
         super(context);
         mName = name;
@@ -43,10 +53,12 @@ public class ExpressLoader extends AsyncTaskLoader<ArrayList<HashMap<String, Str
         JSONObject obj = get(mName);
 
         if (obj != null) {
+            // "選択してください"アイテムを先頭に追加
             HashMap<String, String> notSelected = new HashMap<String, String>();
             notSelected.put("name", "選択してください");
             list.add(notSelected);
             try {
+                // JSONからデータを取り出す
                 JSONObject response = obj.getJSONObject("response");
                 JSONArray array = null;
                 switch (getId()) {
@@ -93,13 +105,17 @@ public class ExpressLoader extends AsyncTaskLoader<ArrayList<HashMap<String, Str
         return list;
     }
 
+    /**
+     * Getリクエストを実行してBodyを取得する.
+     * @param name パラメータにつける名前(エリアor都道府県or路線)
+     * @return JSONObject
+     */
     private JSONObject get(String name) {
-        String url="http://express.heartrails.com/api/json?" + getParams(name);
-        HttpClient httpClient = new DefaultHttpClient();
-        HttpGet get = new HttpGet(url);
-        HttpResponse res = null;
         try {
-            res = httpClient.execute(get);
+            String url = "http://express.heartrails.com/api/json?" + getParams(name);
+            HttpClient httpClient = new DefaultHttpClient();
+            HttpGet get = new HttpGet(url);
+            HttpResponse res = httpClient.execute(get);
             HttpEntity entity = res.getEntity();
             String body = EntityUtils.toString(entity);
             return new JSONObject(body);
@@ -108,6 +124,11 @@ public class ExpressLoader extends AsyncTaskLoader<ArrayList<HashMap<String, Str
         }
     }
 
+    /**
+     * URLパラメータを返す.
+     * @param name パラメータにつける名前(エリアor都道府県or路線)
+     * @return URLパラメータ
+     */
     private String getParams(String name) {
         switch (getId()) {
             case AREAS:
